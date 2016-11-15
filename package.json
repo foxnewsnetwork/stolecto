@@ -1,7 +1,7 @@
 {
   "name": "stolecto",
   "version": "0.0.0",
-  "description": "The default blueprint for ember-cli addons.",
+  "description": "Schema / Network layer for javascript",
   "directories": {
     "doc": "doc",
     "test": "tests"
@@ -9,13 +9,15 @@
   "scripts": {
     "build": "ember build",
     "start": "ember server",
-    "test": "ember try:each"
+    "test": "ember try:each",
+    "tsc": "tsc -p . --noEmit",
+    "tslint": "tslint ./packages/**.ts"
   },
-  "repository": "",
+  "repository": "https://github.com/foxnewsnetwork/stolecto",
   "engines": {
     "node": ">= 0.12.0"
   },
-  "author": "",
+  "author": "Thomas Chen",
   "license": "MIT",
   "devDependencies": {
     "broccoli-asset-rev": "^2.4.5",
@@ -38,13 +40,23 @@
     "ember-load-initializers": "^0.5.1",
     "ember-resolver": "^2.0.3",
     "ember-welcome-page": "^1.0.3",
-    "loader.js": "^4.0.10"
+    "loader.js": "^4.0.10",
+    "tslint": "^3.15.1"
   },
   "keywords": [
     "ember-addon"
   ],
   "dependencies": {
-    "ember-cli-babel": "^5.1.7"
+    "broccoli-concat": "^3.0.5",
+    "broccoli-funnel": "^1.0.9",
+    "broccoli-merge-trees": "^1.1.4",
+    "broccoli-stew": "^1.4.0",
+    "broccoli-tslinter": "^1.0.2",
+    "broccoli-typescript-compiler": "^1.0.1",
+    "ember-cli-babel": "^5.1.7",
+    "emberjs-build": "^0.18.0",
+    "exists-sync": "0.0.4",
+    "typescript": "^2.0.9"
   },
   "ember-addon": {
     "configPath": "tests/dummy/config"
