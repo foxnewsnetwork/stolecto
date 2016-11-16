@@ -1,30 +1,35 @@
+import { Model, createModel } from './model';
+import { Field } from './field';
 
-interface Monad<T> {
-  returnM: (value: T) => Monad<T>;
-  failM: (msg: string) => Monad<T>;
-  pipeM: (valueWithCtx: Monad<T>, f: ((rawValue: T) => Monad<any> )) => Monad<any>;
+export type Command = string | symbol
+
+export interface Fields {
+  [propName: string]: Field
 }
 
-interface State<T> {
-  init: () => State<T>;
-  get: (state: State<T>, key: string) => Monad<T>;
-  set: (state: State<T>, key: string) => State<T>;
-  update: (state: State<T>, key: string, updater: ( (state: State<T>) => State<T> ) ) => State<T>;
+export interface Schema {
+  fields: Fields;
+  get<T>(model: Model, field: Field): T;
+  normalize: (response: JSON, state) => Model;
+  serialize: (cmd: Command, model: Model, state) => JSON;
 }
 
-class StateStore {
-
-}
-
-class SchemaProperty<T> {
-  value: T;
-  rev: string;
-  serialize: (localState, value: T) => Primitive;
-  normalize: (localState, value: Primitive) => T;
-}
-
-function attr(type, opts) {
-  return new SchemaProperty({
-    
-  });
+export function createSchema(fields: Fields): Schema {
+  for(let fieldName in fields) {
+    let field = fields[fieldName];
+    field.fieldName = fieldName;
+  }
+  const schema: Schema = {
+    fields,
+    get(model, field) {
+      return field.getValue(model);
+    },
+    normalize(payload, state) {
+      return createModel(schema, payload);
+    },
+    serialize(cmd, model, state) {
+      return { };
+    }
+  };
+  return schema;
 }
