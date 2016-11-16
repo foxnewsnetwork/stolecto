@@ -1,13 +1,20 @@
 /*jshint node:true*/
 module.exports = {
-  "framework": "qunit",
+  "framework": "ava",
   "test_page": "tests/index.html?hidepassed",
   "disable_watching": true,
+  "launchers": {
+    "Node": {
+      "command": "ava",
+      "output": "tap"
+    }
+  },
   "launch_in_ci": [
-    "PhantomJS"
+    "PhantomJS",
+    "Node"
   ],
   "launch_in_dev": [
     "PhantomJS",
-    "Chrome"
+    "Node"
   ]
 };

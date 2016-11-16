@@ -7,13 +7,11 @@ var concat = require('broccoli-concat');
 var merge = require('broccoli-merge-trees');
 var typescript = require('broccoli-typescript-compiler');
 var transpileES6 = require('emberjs-build/lib/utils/transpile-es6');
-// var handlebarsInlinedTrees = require('./build-support/handlebars-inliner');
 var stew = require('broccoli-stew');
 var TSLint = require('broccoli-tslinter');
 var mv = stew.mv;
 var find = stew.find;
 var rename = stew.rename;
-var EmberAddon = require('ember-cli/lib/broccoli/ember-addon');
 
 function transpile(tree, options, label) {
   return transpileES6(tree, label, options);
@@ -53,18 +51,30 @@ function buildBabelOptions(options) {
 
 module.exports = function(_options) {
   var options = _options || {};
-  var packages = __dirname + '/packages';
+  var libDir = __dirname + '/lib';
+  var testDir = __dirname + '/tests';
   var tslintConfig = __dirname + '/tslint.json';
-  var bower = __dirname + '/bower_components';
-  var hasBower = existsSync(bower);
   var babelOptions = buildBabelOptions(options);
 
   var tsOptions = buildTSOptions();
 
-  var tsTree = find(packages, {
+  var tsTree = find(libDir, {
     include: ['**/*.ts'],
     exclude: ['**/*.d.ts']
   });
+
+  var tsTestTree = find(testDir, {
+    include: ['**/*.ts'],
+    exclude: ['**/*.d.ts']
+  });
+
+  var jsTree = find(libDir, {
+    include: ['**/*.js']
+  });
+
+  var jsTestTree = find(testDir, {
+    include: ['**/*.js']
+  })
 
   var tsLintTree = new TSLint(tsTree, {
     configuration: tslintConfig
@@ -72,66 +82,59 @@ module.exports = function(_options) {
   /* tslint:enable:no-unused-variable */
   var transpiledTSLintTree = typescript(tsLintTree, tsOptions);
 
-  var jsTree = typescript(tsTree, tsOptions);
+  jsTree = merge([jsTree, typescript(tsTree, tsOptions)]);
+  jsTestTree = merge([jsTestTree, typescript(tsTestTree, tsOptions)]);
 
   var libTree = find(jsTree, {
-    include: ['*/index.js', '*/lib/**/*.js']
+    include: ['**/*.js']
   });
 
-  libTree = merge([libTree]);
+  var testTree = find(jsTestTree, {
+    include: ['**/*.js']
+  });
 
+  /*
+  * ES6 Build
+  */
   var es6LibTree = mv(libTree, 'es6');
+  var es6TestTree = mv(testTree, 'es6');
 
   /*
    * ES5 Named AMD Build
    */
   libTree = transpile(libTree, babelOptions, 'ES5 Lib Tree');
+  testTree = transpile(testTree, babelOptions, 'ES5 Test Tree');
+
+  testTree = merge([
+    testTree,
+    transpiledTSLintTree
+  ]);
+
   var es5LibTree = mv(libTree, 'named-amd');
+  var es5TestTree = mv(testTree, 'named-amd');
 
   /*
-   * CommonJS Build
-   */
+  * CommonJS Build
+  */
   tsOptions = buildTSOptions({
     module: "commonjs",
     target: "es5"
   });
 
   var cjsTree = typescript(tsTree, tsOptions);
-  // Test Assets
+  var cjsTestTree = typescript(tsTestTree, tsOptions);
 
-  var testHarnessTrees = [
-    find(__dirname + '/tests', {
-      srcDir: '/',
-      files: [ 'index.html' ],
-      destDir: '/tests'
-    })
-  ];
-
-  if (hasBower) {
-    testHarnessTrees.push(find(bower, {
-      srcDir: '/qunit/qunit',
-      destDir: '/tests'
-    }));
-  }
-
-  var testHarness = merge(testHarnessTrees);
+  cjsTree = mv(cjsTree, 'node_modules');
+  cjsTestTree = mv(cjsTestTree, 'tests');
 
   var finalTrees = [
-    testHarness,
     cjsTree,
+    cjsTestTree,
     es5LibTree,
-    es6LibTree
+    es5TestTree,
+    es6LibTree,
+    es6TestTree
   ];
-
-  if (hasBower) {
-    var loader = find(__dirname + '/node_modules', {
-      srcDir: '/loader.js/lib/loader',
-      files: [ 'loader.js' ],
-      destDir: '/assets'
-    });
-
-    finalTrees.push(loader);
-  }
 
   return merge(finalTrees);
 };
