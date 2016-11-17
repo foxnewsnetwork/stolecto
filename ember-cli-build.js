@@ -17,6 +17,14 @@ function transpile(tree, options, label) {
   return transpileES6(tree, label, options);
 }
 
+function avaLintTestGenerator(relativePath, passed, errors) {
+  return "" +
+    "import test from 'ava';\n" +
+    "test('" + relativePath + " should pass tslint', t => { \n" +
+    "  t.true(" + !!passed + ");\n"
+  "});\n";
+}
+
 function buildTSOptions(compilerOptions) {
   var tsOptions = {
     tsconfig: {
@@ -72,24 +80,20 @@ module.exports = function(_options) {
     include: ['**/*.js']
   });
 
-  var jsTestTree = find(testDir, {
+  var es6TestTree = find(testDir, {
     include: ['**/*.js']
   })
 
   var tsLintTree = new TSLint(tsTree, {
-    configuration: tslintConfig
+    configuration: tslintConfig,
+    testGenerator: avaLintTestGenerator
   });
   /* tslint:enable:no-unused-variable */
   var transpiledTSLintTree = typescript(tsLintTree, tsOptions);
 
   jsTree = merge([jsTree, typescript(tsTree, tsOptions)]);
-  jsTestTree = merge([jsTestTree, typescript(tsTestTree, tsOptions)]);
 
   var libTree = find(jsTree, {
-    include: ['**/*.js']
-  });
-
-  var testTree = find(jsTestTree, {
     include: ['**/*.js']
   });
 
@@ -97,32 +101,28 @@ module.exports = function(_options) {
   * ES6 Build
   */
   var es6LibTree = mv(libTree, 'es6');
-  var es6TestTree = mv(testTree, 'es6');
 
   /*
    * ES5 Named AMD Build
    */
   libTree = transpile(libTree, babelOptions, 'ES5 Lib Tree');
-  testTree = transpile(testTree, babelOptions, 'ES5 Test Tree');
-
-  testTree = merge([
-    testTree,
-    transpiledTSLintTree
-  ]);
 
   var es5LibTree = mv(libTree, 'named-amd');
-  var es5TestTree = mv(testTree, 'named-amd');
 
   /*
   * CommonJS Build
   */
   tsOptions = buildTSOptions({
     module: "commonjs",
-    target: "es5"
+    target: "es6"
   });
 
   var cjsTree = typescript(tsTree, tsOptions);
-  var cjsTestTree = typescript(tsTestTree, tsOptions);
+  var cjsTestTree = merge([
+    es6TestTree,
+    transpiledTSLintTree,
+    typescript(tsTestTree, tsOptions)
+  ]);
 
   cjsTree = mv(cjsTree, 'node_modules');
   cjsTestTree = mv(cjsTestTree, 'tests');
@@ -131,9 +131,7 @@ module.exports = function(_options) {
     cjsTree,
     cjsTestTree,
     es5LibTree,
-    es5TestTree,
-    es6LibTree,
-    es6TestTree
+    es6LibTree
   ];
 
   return merge(finalTrees);

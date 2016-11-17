@@ -5,16 +5,14 @@ module.exports = {
   "disable_watching": true,
   "launchers": {
     "Node": {
-      "command": "ava",
+      "command": "npm test",
       "output": "tap"
     }
   },
   "launch_in_ci": [
-    "PhantomJS",
     "Node"
   ],
   "launch_in_dev": [
-    "PhantomJS",
     "Node"
   ]
 };

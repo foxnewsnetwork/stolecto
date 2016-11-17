@@ -9,6 +9,7 @@
   "scripts": {
     "build": "ember build",
     "start": "ember server",
+    "pretest": "ember build",
     "test": "ava dist/tests",
     "tsc": "tsc -p . --noEmit",
     "tslint": "tslint ./packages/**.ts"
@@ -23,7 +24,9 @@
     "ava": "^0.16.0",
     "ember-cli": "2.9.1",
     "ember-cli-release": "^1.0.0-beta.1",
+    "ic-ajax": "^2.0.2",
     "loader.js": "^4.0.10",
+    "pretender": "^1.4.2",
     "tslint": "^3.15.1"
   },
   "keywords": [
