@@ -16,3 +16,4 @@ export const OWNERS = {
 
 export const JSON_TYPE = {"Content-Type": "application/json"};
 export const all = (X) => JSON.stringify(Object.keys(X).map((k) => X[k]));
+export const ok = (data) => [200, JSON_TYPE, data];

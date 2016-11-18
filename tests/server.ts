@@ -15,8 +15,8 @@ export class Server {
   get(uri) {
     return new Promise(resolve => {
       setTimeout(() => {
-        resolve(this.handlers[uri](), 5);
-      });
+        resolve(this.handlers[uri]());
+      }, 5);
     });
   }
 }
