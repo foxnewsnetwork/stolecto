@@ -1,9 +1,9 @@
 import { Enhancer, isEnhancer } from './enhancer';
 import Multi from './multi';
-import { Adapters, adapterFor } from './adapter';
 import { Promise } from './base-types';
 import Field from './field';
 import { Model, getModel } from './model';
+import { Adapters, adapterFor } from './adapter';
 
 export interface API {
   run: (multiset: Multi) => Promise<Model>;
@@ -18,7 +18,8 @@ function createDefaultAPI(adapters: Adapters): API {
     run(multiset) {
       return multiset.map((singleset) => {
         const adapter = adapterFor(adapters, singleset);
-        return adapter.run(singleset);
+        const { schema } = singleset;
+        return adapter.dispatch(singleset).then(schema.normalize);
       });
     },
     getProperties(model, fields) {

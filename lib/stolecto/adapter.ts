@@ -1,39 +1,45 @@
 import { Command, Promise } from './base-types';
 import { Model } from './model';
-import { IO } from './io';
+import { Gateway } from './gateway';
+import { Singleset } from './singleset';
 
 export interface Adapters {
   [propName: string]: Adapter;
 }
+
 export interface Adapter {
-  run: (s: Singleset) => Promise<Model>;
-}
-export interface AdapterCore {
-  io: IO;
-  makeURI(c: Command, params, model: Model): string;
+  gateway: Gateway;
+  makeURI(singleset: Singleset): string;
+  makeQueryParams(singleset: Singleset): Jason;
+  makeHeader(singleset: Singleset): Jason;
+  makeBody(singleset: Singleset): Jason;
+  dispatch(adapter: Adapter, singleset: Singleset): Promise<Model>;
 }
 
-export function createAdapter(e: Enhancer | AdapterCore, ac: AdapterCore): Adapter {
+export function createAdapter(e: Enhancer | Adapter, ac: Adapter): Adapter {
   if(isEnhancer(e)) {
     return e(createAdapter)(ac);
   }
   else {
-    let actualAC = e;
-    return createDefaultAdapter(actualAC);
+    return e;
   }
 }
 
-function createDefaultAdapter(ac: AdapterCore): Adapter {
-  return {
-    run(singleset) {
-      const { command, params, model, schema } = singleset;
-      const uri = ac.makeURI(command, params, model);
-      return ac.io.makeRequest(uri).then(schema.normalize);
-    }
-  };
+const DEFAULT_ADAPTER = {
+  dispatch(adapter, singleset) {
+    const { gateway } = adapter;
+    const uri = adapter.makeURI(singleset);
+    const queryParams = adapter.makeQueryParams(singleset);
+    const header = adapter.makeHeader(singleset);
+    const body = adapter.makeBody(singleset);
+    return gateway.dispatch(gateway, {uri, header, body});
+  }
+};
+
+function createDefaultAdapter(adapter: Adapter): Adapter {
+  return Object.assign({}, DEFAULT_ADAPTER, adapter);
 }
 
 export function adapterFor(adapters: Adapters, singleset: Singleset): Adapter {
-  const { name } = singleset;
-  return adapters[name];
+  return adapters[singelset.schema.name];
 }

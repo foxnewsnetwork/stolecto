@@ -4,6 +4,17 @@ Javascript-based declarative schema, model, and network layer. Build with ember,
 
 Software design and architecture stolen shamelessly from Elixir's Ecto
 
+## Architecture
+There are 3 fundamental ideas in Stolecto:
+
+1. API - these are the things that handle communicating with a remote back-end
+2. Schemas - these are what you, the user, declares ahead of time as the models you'll be working with
+3. Multisets - these represent (possibly batched) queries and mutations you, the user, is asking of your local and remote data
+
+#### API
+The job of your api is split up into 3 parts: transport, gateway, adapter
+
+
 ## Usage
 Declare your schemas
 ```javascript

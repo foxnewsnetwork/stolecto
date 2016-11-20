@@ -7,18 +7,14 @@ import { createAPI } from 'stolecto/api';
 import { Multi } from 'stolecto/multi';
 import { createQuery } from 'stolecto/queryset';
 import { createAdapter } from 'stolecto/adapter';
-import { createIO } from 'stolecto/io';
+import { createGateway } from 'stolecto/gateway';
 import { createTransform } from 'stolecto/transform';
 import { PromiseMonad, ArrayMonad } from 'stolecto/monads';
 import enhanceWith from 'stolecto/enhance-with';
 
 enum Commands { GET }
 const server = new Server();
-const testIO = createIO({
-  makeRequest(command, uri, header, body) {
-    return server.get(uri);
-  }
-});
+
 const OwnerTransform = createTransform({
   normalize(schema, remoteData, appState) {
     return schema.createModel({
@@ -43,7 +39,20 @@ const ShopSchema = createSchema(enhanceWith(ShopTransform), () => ({
   name: field(StringSchema),
   owner: fieldMT(PromiseMonad)(OwnerSchema)
 }));
-const ShopAdapter = createAdapter(enhanceWith(testIO), {
+
+const testTransport = createTransport({
+  makeRequest(command, uri, header, body) {
+    return server.get(uri);
+  }
+});
+
+const shopGateway = createGateway({
+  transport: testTransport,
+
+});
+
+const ShopAdapter = createAdapter({
+  gateway: shopGateway,
   makeURI(command, params) { return `/shops/${params.id}`; }
 });
 let BasicUsageTestStorage = {};
@@ -51,7 +60,7 @@ const Storeable = {
   getState() { return BasicUsageTestStorage; }
 }
 
-const API = createAPI(enhanceWith(Storeable), {shop: ShopAdapter});
+const API = createAPI(enhanceWith(Storeable), {shop: shopGateway});
 
 test.before(t => {
   server.register('/shops/666', () => ok(SHOPS['666']));
