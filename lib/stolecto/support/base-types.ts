@@ -1,5 +1,5 @@
-export type Command = string | symbol;
-export type Primitive = string | number | boolean
+export type Command = string | symbol
+export type Primitive = string | number | boolean | Date
 export interface Resolver {
   (value: any): any;
 }
@@ -23,3 +23,10 @@ export interface Error {
   message: string;
   name: string;
 }
+
+export interface KeyMap<T> {
+  [propName: string]: T;
+}
+
+// For some strange reason JSON type gives error
+export type Jason = Primitive | void | KeyMap<Jason>

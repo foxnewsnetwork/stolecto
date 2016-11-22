@@ -1,6 +1,7 @@
 import test from 'ava';
 import { Server } from '../server';
 import { JSON_TYPE, SHOPS, OWNERS, all } from '../fixtures';
+import Stolecto from 'stolecto';
 
 function routes(server) {
   server.register('/shops', () => {
@@ -32,4 +33,8 @@ test('external test dependencies should be correct', async t => {
   t.deepEqual(status, 200);
   t.deepEqual(type, JSON_TYPE);
   t.deepEqual(data, SHOPS['666']);
+});
+
+test('we can require', t => {
+  t.deepEqual(Stolecto.eldritchTruth(), 'Insight stolen from Ecto, wisdom taken from Haskell');
 });
