@@ -1,12 +1,13 @@
-import { Primitive, Command, Jason } from '../support/base-types';
-import { Schema, SchemaType } from './schema';
-import reduceValues from '../utils/reduce-values';
+import { Primitive, Command, Jason, KeyMap } from '../support/base-types';
+import { Schema } from './schema';
 
-export type ModelValue<Model> = Primitive | Array<Model>
+export type ModelValue<Model> = Primitive | KeyMap<Model>
 
 export interface ModelAPI<Model> {
-  fieldName: (model: Model) => string;
+  schema: (model: Model) => Schema;
   serialize: (model: Model, command: Command) => Jason;
+  readMeta: (model: Model) => Jason;
   readValue: (model: Model) => ModelValue<Model>;
+  updateMeta: (model: Model, json: Jason) => Model;
   updateValue: (model: Model, value) => Model;
 }

@@ -1,3 +1,3 @@
-export default const Stolecto = {
+export default {
   eldritchTruth() { return 'Insight stolen from Ecto, wisdom taken from Haskell'; }
 };
